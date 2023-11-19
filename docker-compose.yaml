@@ -1,0 +1,55 @@
+version: '3.9'
+name: tp3
+services:
+  mysql-tp3:
+    build: 
+      context: ./mysql
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: library
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    command: --init-file /docker-entrypoint-initdb.d/dump.sql
+    volumes:
+      - db-data_tp3:/var/lib/mysql
+    networks:
+      - network_tp3
+  phpmyadmin-tp3:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql-tp3
+      PMA_USER: admin
+      PMA_PASSWORD: admin
+    networks:
+      - network_tp3
+    ports:
+      - 8080:80
+    links:
+      - mysql-tp3
+  php-tp3:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql-tp3
+    restart: always
+    ports:
+      - 8000:80
+    networks:
+      - network_tp3
+  python-tp3:
+    build:
+      context: ./python-flask
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - mysql-tp3
+    ports:
+      - 5000:5000
+    networks:
+      - network_tp3
+volumes:
+  db-data_tp3:
+networks:
+  network_tp3:
